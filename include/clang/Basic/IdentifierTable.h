@@ -504,6 +504,18 @@ public:
 
     // Lookups failed, make a new IdentifierInfo.
     void *Mem = getAllocator().Allocate<IdentifierInfo>();
+
+    // Begin: weird alignment workaround
+    uint64_t IIAlignmentMask = llvm::AlignOf<IdentifierInfo>::Alignment - 1;
+    if (((uint64_t)Mem & IIAlignmentMask) != 0)
+    {
+        Mem = getAllocator().Allocate<IdentifierInfo>();
+
+        assert(((uint64_t)Mem & IIAlignmentMask) == 0
+            && "Insufficiently aligned again!");
+    }
+    // End: weird alignment workaround
+
     II = new (Mem) IdentifierInfo();
 
     // Make sure getName() knows how to find the IdentifierInfo
