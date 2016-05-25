@@ -2125,6 +2125,18 @@ TypeSourceInfo *ASTContext::CreateTypeSourceInfo(QualType T,
 
   TypeSourceInfo *TInfo =
     (TypeSourceInfo*)BumpAlloc.Allocate(sizeof(TypeSourceInfo) + DataSize, 8);
+
+  // Begin: weird alignment workaround
+  if (((uint64_t)TInfo & 0x7) != 0)
+  {
+    TypeSourceInfo *TInfo =
+      (TypeSourceInfo*)BumpAlloc.Allocate(
+        sizeof(TypeSourceInfo) + DataSize, 8);
+
+    assert(((uint64_t)TInfo & 0x7) == 0 && "Insufficiently aligned again!");
+  }
+  // End: weird alignment workaround
+
   new (TInfo) TypeSourceInfo(T);
   return TInfo;
 }
